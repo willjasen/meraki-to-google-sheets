@@ -20,7 +20,8 @@ function MerakiReport() {
   sheet.getRange(row,2).setValue("Network");
   sheet.getRange(row,3).setValue("Device");
   sheet.getRange(row,4).setValue("First Uplink");
-  sheet.getRange(row,5).setValue("Firmware");
+  sheet.getRange(row,5).setValue("Device Type");
+  sheet.getRange(row,6).setValue("Firmware");
   row++;
   
   
@@ -47,8 +48,21 @@ function MerakiReport() {
         if(organization != undefined) { sheet.getRange(row,1).setValue(organization.name); }
         if(network != undefined) { sheet.getRange(row,2).setValue(network.name); }
         if(device != undefined) { sheet.getRange(row,3).setValue(device.name); }
-        if(uplink[0] != undefined) { sheet.getRange(row,4).setValue(uplink[0].status); }
-        if(device != undefined) { sheet.getRange(row,5).setValue(device.firmware); }
+        if(uplink[0] != undefined) { sheet.getRange(row,4).setValue(uplink[0].status) }
+        if(device != undefined) {
+          if(device.firmware != "Not running configured version") {
+            var splitFirmware = (device.firmware).split("-");
+            var deviceType = splitFirmware[0];
+            splitFirmware.shift();
+            var firmwareVersion = "";
+            for(var splitFirmwareIndex in splitFirmware) {
+              firmwareVersion = firmwareVersion + "." + splitFirmware[splitFirmwareIndex];
+            }
+            firmwareVersion = firmwareVersion.substring(1, firmwareVersion.length);
+            sheet.getRange(row,5).setValue(deviceType);
+            sheet.getRange(row,6).setValue(firmwareVersion);
+          }
+        }
         
         // Go to the next row
         row++;
@@ -56,8 +70,9 @@ function MerakiReport() {
     }    
   }
   
-  sheet.getRange(1,2).setValue("Organizations");
+  sheet.getRange(1,2).setValue("Networks");
   sheet.getRange(1,3).setValue("Devices");
+  
 }
 
 function fetch(path)
@@ -79,17 +94,11 @@ function fetch(path)
   // Return data or follow redirects
   var response = UrlFetchApp.fetch(url_path, options); 
   
-  if (response.getResponseCode() == 302) {
-    Logger.log("302!!!");
-  }
   if(response.getResponseCode() == 404) {
-    Logger.log("404 - " + response);
+    Logger.log("HTTP 404 - Not Found - " + response);
     // skip
   }
   else {
-    //Logger.log(url_path);
-    //Logger.log(response.getResponseCode());
-    //Logger.log(response);
     return JSON.parse(response);
   }
   
