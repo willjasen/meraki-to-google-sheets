@@ -26,14 +26,15 @@ function MerakiReport() {
   
   sheet.getRange(1,1).setValue("Getting Organizations...");
   var organizations = fetch("/organizations");
+  sheet.getRange(1,1).setValue("Organizations");
   
   // organization, network, device
-  sheet.getRange(1,1).setValue("Getting Networks...");
+  sheet.getRange(1,2).setValue("Getting Networks...");
   for(var organizationIndex in organizations) {
     var organization = organizations[organizationIndex];
     var networks = fetch("/organizations/"+organization.id+"/networks");
     
-    sheet.getRange(1,1).setValue("Getting Devices...");
+    sheet.getRange(1,3).setValue("Getting Devices...");
     for(var networkIndex in networks) {
       var network = networks[networkIndex];
       var devices = fetch("/networks/"+network.id+"/devices");
@@ -55,7 +56,8 @@ function MerakiReport() {
     }    
   }
   
-  sheet.getRange(1,1).setValue("Organizations");
+  sheet.getRange(1,2).setValue("Organizations");
+  sheet.getRange(1,3).setValue("Devices");
 }
 
 function fetch(path)
