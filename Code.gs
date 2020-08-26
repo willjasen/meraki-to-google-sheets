@@ -2,10 +2,10 @@
 var apiKey = "";
 
 // This is okay
-var url = "https://api.meraki.com/api/v0";
+var url = "https://api.meraki.com/api/v1";
 
 function onOpen(e) {
-  MerakiReport();
+  
 }
 
 function MerakiReport() {
@@ -15,13 +15,14 @@ function MerakiReport() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   
   // Display
+  sheet.clear();
   var row = 1;
-  sheet.getRange(row,1).setValue("Organization");
-  sheet.getRange(row,2).setValue("Network");
-  sheet.getRange(row,3).setValue("Device");
-  sheet.getRange(row,4).setValue("First Uplink");
-  sheet.getRange(row,5).setValue("Device Type");
-  sheet.getRange(row,6).setValue("Firmware");
+  var columnNames = ["Organization","Device","Firmware","Device Type","Firmware Version"];
+  var columnIndex = 0;
+  for(var columnIndex in columnNames) {
+    sheet.getRange(row,columnIndex+1).setValue(columnNames[columnIndex]);
+    columnIndex += 1;
+  }
   row++;
   
   
@@ -30,27 +31,25 @@ function MerakiReport() {
   sheet.getRange(1,1).setValue("Organizations");
   
   // organization, network, device
-  sheet.getRange(1,2).setValue("Getting Networks...");
+  sheet.getRange(1,2).setValue("Getting Devices...");
   for(var organizationIndex in organizations) {
     var organization = organizations[organizationIndex];
-    var networks = fetch("/organizations/"+organization.id+"/networks");
+    var devices = fetch("/organizations/"+organization.id+"/devices");
     
-    sheet.getRange(1,3).setValue("Getting Devices...");
-    for(var networkIndex in networks) {
-      var network = networks[networkIndex];
-      var devices = fetch("/networks/"+network.id+"/devices");
+    for(var deviceIndex in devices) {
+      var device = devices[deviceIndex];
+      var networkId = device.networkId;
+      var firmware = device.firmware;
       
-      for(var deviceIndex in devices) {
-        var device = devices[deviceIndex];
-        
-        var uplink = fetch("/networks/"+network.id+"/devices/"+device.serial+"/uplink");
-        
-        if(organization != undefined) { sheet.getRange(row,1).setValue(organization.name); }
-        if(network != undefined) { sheet.getRange(row,2).setValue(network.name); }
-        if(device != undefined) { sheet.getRange(row,3).setValue(device.name); }
-        if(uplink[0] != undefined) { sheet.getRange(row,4).setValue(uplink[0].status) }
-        if(device != undefined) {
-          if(device.firmware != "Not running configured version") {
+      
+      sheet.getRange(row,1).setValue(organization.name);
+      var deviceHyperlink = '=HYPERLINK("' + device.url + '", "' + device.name + '")'
+      sheet.getRange(row,2).setValue(deviceHyperlink);
+      sheet.getRange(row,3).setValue(device.firmware);
+      
+      if(device != undefined) {
+        if(device.firmware != undefined) {
+      if(device.firmware != "Not running configured version") {
             var splitFirmware = (device.firmware).split("-");
             var deviceType = splitFirmware[0];
             splitFirmware.shift();
@@ -59,20 +58,16 @@ function MerakiReport() {
               firmwareVersion = firmwareVersion + "." + splitFirmware[splitFirmwareIndex];
             }
             firmwareVersion = firmwareVersion.substring(1, firmwareVersion.length);
-            sheet.getRange(row,5).setValue(deviceType);
-            sheet.getRange(row,6).setValue(firmwareVersion);
-          }
-        }
-        
-        // Go to the next row
-        row++;
-      }
-    }    
+            sheet.getRange(row,4).setValue(deviceType);
+            sheet.getRange(row,5).setValue(firmwareVersion);
+      
+      row++; 
+      
+    }
+        } }
+    }
+  
   }
-  
-  sheet.getRange(1,2).setValue("Networks");
-  sheet.getRange(1,3).setValue("Devices");
-  
 }
 
 function fetch(path)
@@ -89,7 +84,7 @@ function fetch(path)
   };
   
   // Wait a little bit, API rate limit at 5/sec
-  Utilities.sleep(200);
+  Utilities.sleep(250);
   
   // Return data or follow redirects
   var response = UrlFetchApp.fetch(url_path, options); 
