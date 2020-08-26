@@ -5,7 +5,7 @@ var apiKey = "";
 var url = "https://api.meraki.com/api/v1";
 
 function onOpen(e) {
-  
+  MerakiReport();
 }
 
 function MerakiReport() {
@@ -25,13 +25,7 @@ function MerakiReport() {
   }
   row++;
   
-  
-  sheet.getRange(1,1).setValue("Getting Organizations...");
   var organizations = fetch("/organizations");
-  sheet.getRange(1,1).setValue("Organizations");
-  
-  // organization, network, device
-  sheet.getRange(1,2).setValue("Getting Devices...");
   for(var organizationIndex in organizations) {
     var organization = organizations[organizationIndex];
     var devices = fetch("/organizations/"+organization.id+"/devices");
@@ -41,7 +35,6 @@ function MerakiReport() {
       var networkId = device.networkId;
       var firmware = device.firmware;
       
-      
       sheet.getRange(row,1).setValue(organization.name);
       var deviceHyperlink = '=HYPERLINK("' + device.url + '", "' + device.name + '")'
       sheet.getRange(row,2).setValue(deviceHyperlink);
@@ -49,24 +42,21 @@ function MerakiReport() {
       
       if(device != undefined) {
         if(device.firmware != undefined) {
-      if(device.firmware != "Not running configured version") {
-            var splitFirmware = (device.firmware).split("-");
-            var deviceType = splitFirmware[0];
-            splitFirmware.shift();
-            var firmwareVersion = "";
-            for(var splitFirmwareIndex in splitFirmware) {
-              firmwareVersion = firmwareVersion + "." + splitFirmware[splitFirmwareIndex];
-            }
-            firmwareVersion = firmwareVersion.substring(1, firmwareVersion.length);
-            sheet.getRange(row,4).setValue(deviceType);
-            sheet.getRange(row,5).setValue(firmwareVersion);
+          var splitFirmware = (device.firmware).split("-");
+          var deviceType = splitFirmware[0];
+          splitFirmware.shift();
+          var firmwareVersion = "";
+          for(var splitFirmwareIndex in splitFirmware) {
+            firmwareVersion = firmwareVersion + "." + splitFirmware[splitFirmwareIndex];
+          }
+          firmwareVersion = firmwareVersion.substring(1, firmwareVersion.length);
+          sheet.getRange(row,4).setValue(deviceType);
+          sheet.getRange(row,5).setValue(firmwareVersion);
       
-      row++; 
-      
-    }
-        } }
-    }
-  
+          row++; 
+        } 
+      }
+    } 
   }
 }
 
