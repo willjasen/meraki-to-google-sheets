@@ -38,7 +38,14 @@ function MerakiReport() {
       sheet.getRange(row,1).setValue(organization.name);
       var deviceHyperlink = '=HYPERLINK("' + device.url + '", "' + device.name + '")'
       sheet.getRange(row,2).setValue(deviceHyperlink);
+      
       sheet.getRange(row,3).setValue(device.firmware);
+      if(device.firmware == "wired-14-42") {
+        sheet.getRange(row,3).setBackgroundColor('yellow');
+      }
+      else if(device.firmware == "switch-12-14") {
+        sheet.getRange(row,3).setBackgroundColor('red');
+      }
       
       if(device != undefined) {
         if(device.firmware != undefined) {
