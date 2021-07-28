@@ -84,14 +84,19 @@ function fetch(path)
   Utilities.sleep(250);
   
   // Return data or follow redirects
-  var response = UrlFetchApp.fetch(url_path, options); 
+  try {
+    var response = UrlFetchApp.fetch(url_path, options); 
   
-  if(response.getResponseCode() == 404) {
-    Logger.log("HTTP 404 - Not Found - " + response);
+    if(response.getResponseCode() == 404) {
+      Logger.log("HTTP 404 - Not Found - " + response);
+      // skip
+    }
+    else {
+      return JSON.parse(response);
+    }
+  } catch(err) {
+    Logger.log("fetch error");
     // skip
-  }
-  else {
-    return JSON.parse(response);
   }
   
 }
